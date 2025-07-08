@@ -21,63 +21,85 @@
 #include <M5Unified.h>
 
 #define LED_STRIP_BLINK_GPIO  21
-#define LED_STRIP_LED_NUMBERS 3
+#define LED_STRIP_LED_NUMBERS 3 * 3
 #define LED_STRIP_RMT_RES_HZ  (10 * 1000 * 1000)
+#define LED_BRIGHTNESS 30
 
 static const char *TAG = "LED_STRIP";
 
 led_strip_handle_t led_strip;
 
-static uint8_t rgb_state[3][3] = {{255, 0, 0}, {0, 255, 0}, {0, 0, 255}};
+static uint8_t rgb_state[LED_STRIP_LED_NUMBERS][3] = {{LED_BRIGHTNESS, 0, 0}, {LED_BRIGHTNESS, 0, 0}, {LED_BRIGHTNESS, 0, 0}, {LED_BRIGHTNESS, 0, 0}, {LED_BRIGHTNESS, 0, 0}, {LED_BRIGHTNESS, 0, 0}, {LED_BRIGHTNESS, 0, 0}, {LED_BRIGHTNESS, 0, 0}, {LED_BRIGHTNESS, 0, 0}};
 
 void update_display() {
     M5.Display.clear();
     M5.Display.setCursor(10, 10);
     M5.Display.print("Unit RGB TEST");
     M5.Display.setCursor(10, 50);
-    M5.Display.print("L: ");
-    M5.Display.print(rgb_state[0][0]);
-    M5.Display.print(", ");
-    M5.Display.print(rgb_state[0][1]);
-    M5.Display.print(", ");
-    M5.Display.print(rgb_state[0][2]);
+    M5.Display.print("1: ");
+    if (rgb_state[0][0] == LED_BRIGHTNESS)
+    {
+        M5.Display.print("RED");
+    }
+    else if (rgb_state[0][1] == LED_BRIGHTNESS)
+    {
+        M5.Display.print("GREEN");
+    }
+    else if (rgb_state[0][2] == LED_BRIGHTNESS)
+    {
+        M5.Display.print("BLUE");
+    }
 
     M5.Display.setCursor(10, 100);
-    M5.Display.print("M: ");
-    M5.Display.print(rgb_state[1][0]);
-    M5.Display.print(", ");
-    M5.Display.print(rgb_state[1][1]);
-    M5.Display.print(", ");
-    M5.Display.print(rgb_state[1][2]);
+    M5.Display.print("2: ");
+    if (rgb_state[3][0] == LED_BRIGHTNESS)
+    {
+        M5.Display.print("RED");
+    }
+    else if (rgb_state[3][1] == LED_BRIGHTNESS)
+    {
+        M5.Display.print("GREEN");
+    }
+    else if (rgb_state[3][2] == LED_BRIGHTNESS)
+    {
+        M5.Display.print("BLUE");
+    }
 
     M5.Display.setCursor(10, 150);
-    M5.Display.print("R: ");
-    M5.Display.print(rgb_state[2][0]);
-    M5.Display.print(", ");
-    M5.Display.print(rgb_state[2][1]);
-    M5.Display.print(", ");
-    M5.Display.print(rgb_state[2][2]);
+    M5.Display.print("3: ");
+    if (rgb_state[6][0] == LED_BRIGHTNESS)
+    {
+        M5.Display.print("RED");
+    }
+    else if (rgb_state[6][1] == LED_BRIGHTNESS)
+    {
+        M5.Display.print("GREEN");
+    }
+    else if (rgb_state[6][2] == LED_BRIGHTNESS)
+    {
+        M5.Display.print("BLUE");
+    }
 }
 
 void move_rgb(int index) 
 {
-    if (rgb_state[index][0] == 255) 
+    if (rgb_state[index][0] == LED_BRIGHTNESS) 
     {
         rgb_state[index][0] = 0;
-        rgb_state[index][1] = 255;
+        rgb_state[index][1] = LED_BRIGHTNESS;
         rgb_state[index][2] = 0;
     } 
     else 
-    if (rgb_state[index][1] == 255)
+    if (rgb_state[index][1] == LED_BRIGHTNESS)
     {
         rgb_state[index][0] = 0;
         rgb_state[index][1] = 0;
-        rgb_state[index][2] = 255;
+        rgb_state[index][2] = LED_BRIGHTNESS;
     }
     else 
-    if (rgb_state[index][2] == 255)
+    if (rgb_state[index][2] == LED_BRIGHTNESS)
     {
-        rgb_state[index][0] = 255;
+        rgb_state[index][0] = LED_BRIGHTNESS;
         rgb_state[index][1] = 0;
         rgb_state[index][2] = 0;
     }
@@ -119,36 +141,43 @@ extern "C" void app_main(void)
 
     ESP_ERROR_CHECK(led_strip_new_rmt_device(&strip_config, &rmt_config, &led_strip));
     ESP_LOGI(TAG, "Created LED strip object with RMT backend");
-    led_strip_set_pixel(led_strip, 0, rgb_state[0][0], rgb_state[0][1], rgb_state[0][2]);
-    led_strip_set_pixel(led_strip, 1, rgb_state[1][0], rgb_state[1][1], rgb_state[1][2]);
-    led_strip_set_pixel(led_strip, 2, rgb_state[2][0], rgb_state[2][1], rgb_state[2][2]);
+    for (int i = 0; i < 3; i++) {
+        for (int j = 0; j < 3; j++) {
+            led_strip_set_pixel(led_strip, i * 3 + j, rgb_state[i * 3 + j][0], rgb_state[i * 3 + j][1], rgb_state[i * 3 + j][2]);
+        }
+    }
+
     led_strip_refresh(led_strip);
     
     while (1) 
     {
-        vTaskDelay(100 / portTICK_PERIOD_MS);
+        vTaskDelay(1000 / portTICK_PERIOD_MS);
         M5.update();
-        if (M5.BtnA.wasClicked()) {
-            M5.Speaker.tone(2000, 200);
-            M5_LOGI("Btn Left Clicked");
-            move_rgb(0);
-            update_display();
+        // if (M5.BtnA.wasClicked()) {
+        //     M5.Speaker.tone(2000, 200);
+        //     M5_LOGI("Btn Left Clicked");
+        //     move_rgb(0);
+        //     update_display();
+        // }
+        // if (M5.BtnB.wasClicked()) {
+        //     M5.Speaker.tone(2000, 200);
+        //     M5_LOGI("Btn Middle Clicked");
+        //     move_rgb(1);
+        //     update_display();
+        // }
+        // if (M5.BtnC.wasClicked()) {
+        //     M5.Speaker.tone(2000, 200);
+        //     M5_LOGI("Btn Right Clicked");
+        //     move_rgb(2);
+        //     update_display();
+        // }
+        
+        for (int i = 0; i < 9; i++) 
+        {
+            move_rgb(i);
+            led_strip_set_pixel(led_strip, i, rgb_state[i][0], rgb_state[i][1], rgb_state[i][2]);
         }
-        if (M5.BtnB.wasClicked()) {
-            M5.Speaker.tone(2000, 200);
-            M5_LOGI("Btn Middle Clicked");
-            move_rgb(1);
-            update_display();
-        }
-        if (M5.BtnC.wasClicked()) {
-            M5.Speaker.tone(2000, 200);
-            M5_LOGI("Btn Right Clicked");
-            move_rgb(2);
-            update_display();
-        }
-        led_strip_set_pixel(led_strip, 0, rgb_state[0][0], rgb_state[0][1], rgb_state[0][2]);
-        led_strip_set_pixel(led_strip, 1, rgb_state[1][0], rgb_state[1][1], rgb_state[1][2]);
-        led_strip_set_pixel(led_strip, 2, rgb_state[2][0], rgb_state[2][1], rgb_state[2][2]);
         led_strip_refresh(led_strip);
+        update_display();
     }
 }
